@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokemon PvP Scraper</title>
+</head>
+<body>
+    <h2>寶可夢 PvP 排名爬蟲</h2>
+    <label for="numRankings">請輸入要抓取的前幾名寶可夢：</label>
+    <input type="number" id="numRankings" value="50">
+    <button onclick="runScraper()">開始爬蟲</button>
+
+    <h3>XL 需要糖果的寶可夢：</h3>
+    <p id="xl_pokemon"></p>
+
+    <h3>非 XL 的寶可夢：</h3>
+    <p id="non_xl_pokemon"></p>
+
+    <script>
+        function runScraper() {
+            let numRankings = document.getElementById("numRankings").value;
+            fetch(`http://127.0.0.1:5000/run_scraper?numRankings=${numRankings}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("xl_pokemon").innerText = data.xl_pokemon;
+                    document.getElementById("non_xl_pokemon").innerText = data.non_xl_pokemon;
+                })
+                .catch(error => console.error("Error:", error));
+        }
+    </script>
+</body>
+</html>
