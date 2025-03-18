@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokemon PvP 爬蟲</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        #loading {
+            display: none;
+            font-size: 18px;
+            color: #555;
+        }
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        .copy-btn {
+            cursor: pointer;
+            font-size: 20px;
+            margin-left: 5px;
+            color: #3498db;
+        }
+        .copy-btn:hover {
+            color: #1d6fa5;
+        }
+    </style>
+</head>
+<body>
+    <h2>Pokemon PvP 排名爬蟲</h2>
+    <label for="numRankings">請輸入要抓取的前幾名寶可夢：</label>
+    <input type="number" id="numRankings" value="50">
+    <button onclick="runScraper()">開始爬蟲</button>
+
+    <div id="loading">
+        <div class="spinner"></div>
+        <p>正在載入中，請稍候...</p>
+    </div>
+
+    <p id="errorMessage" class="error"></p>
+
+    <h3>XL 需要糖果的寶可夢：</h3>
+    <div>
+        <span id="xl_pokemon"></span>
+        <span class="copy-btn" onclick="copyToClipboard('xl_pokemon')">📋</span>
+    </div>
+
+    <h3>非 XL 的寶可夢：</h3>
+    <div>
+        <span id="non_xl_pokemon"></span>
+        <span class="copy-btn" onclick="copyToClipboard('non_xl_pokemon')">📋</span>
+    </div>
+
+    <script>
+        function runScraper() {
+            let numRankings = document.getElementById("numRankings").value;
+            let loading = document.getElementById("loading");
+            let errorMessage = document.getElementById("errorMessage");
+            let xlPokemon = document.getElementById("xl_pokemon");
+            let nonXlPokemon = document.getElementById("non_xl_pokemon");
+
+            // 清空舊的數據 & 顯示載入動畫
+            xlPokemon.innerText = "";
+            nonXlPokemon.innerText = "";
+            errorMessage.innerText = "";
+            loading.style.display = "block";
+
+            fetch(`http://127.0.0.1:5000/run_scraper?numRankings=${numRankings}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP 錯誤！狀態碼: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    xlPokemon.innerText = data.xl_pokemon;
+                    nonXlPokemon.innerText = data.non_xl_pokemon;
+                })
+                .catch(error => {
+                    console.error("Fetch error:", error);
+                    errorMessage.innerText = "載入失敗！請檢查伺服器是否運行中。";
+                })
+                .finally(() => {
+                    // 隱藏載入動畫
+                    loading.style.display = "none";
+                });
+        }
+
+        function copyToClipboard(elementId) {
+            let text = document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(text).catch(err => {
+                console.error("無法複製文字:", err);
+            });
+        }
+    </script>
+</body>
+</html>
