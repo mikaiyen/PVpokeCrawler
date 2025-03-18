@@ -20,7 +20,7 @@
     <script>
         function runScraper() {
             let numRankings = document.getElementById("numRankings").value;
-            fetch(`https://pvpokecrawler.onrender.com`)
+            fetch("https://pvpokecrawler.onrender.com/run_scraper?numRankings=50")
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById("xl_pokemon").innerText = data.xl_pokemon;
