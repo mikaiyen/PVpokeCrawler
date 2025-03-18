@@ -5,8 +5,11 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 import time
 import pandas as pd
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)  # 允許所有前端存取 API
+
 
 def get_pvpoke_rankings(url, num_rankings):
     # 設置 Selenium
