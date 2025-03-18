@@ -8,8 +8,15 @@ import time
 import pandas as pd
 from concurrent.futures import ThreadPoolExecutor
 
+@app.route('/')
+def home():
+    return "Flask 爬蟲 API 運行中！請使用 /run_scraper 來獲取資料"
+
+
 app = Flask(__name__)
 CORS(app)  # 允許跨域請求
+
+
 
 # 目標網址
 URLS = {
