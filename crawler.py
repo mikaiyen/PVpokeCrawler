@@ -29,20 +29,23 @@ def get_pvpoke_rankings(url, filename):
     driver = setup_driver()
     driver.get(url)
     
-    time.sleep(5)  # 等待網頁完全載入
+    time.sleep(5)
     
     names = driver.find_elements(By.CLASS_NAME, "name")
     
-    # 處理資料
     names_list = [n.text.replace("XL", "").split(" ")[0] for n in names if n.text.strip()]
     xl_list = [1 if "XL" in n.text else 0 for n in names if n.text.strip()]
     
     driver.quit()
     
+    # 確保資料夾存在
+    if not os.path.exists("data"):
+        os.makedirs("data")
+    
     # 儲存成 CSV 檔案
     data = pd.DataFrame({"Pokemon": names_list, "XL": xl_list})
-    data.to_csv("data/"+filename, index=False, encoding="utf-8-sig")
-    print(f"{filename} 資料已成功抓取並儲存。")
+    data.to_csv(f"data/{filename}", index=False, encoding="utf-8-sig")
+    print(f"✅ {filename} 資料已成功抓取並儲存。")
 
 def main():
     """主程式"""
@@ -58,11 +61,11 @@ def main():
 def push_to_github():
     """將更新的檔案推送到 GitHub"""
     repo = Repo(os.getcwd())
-    repo.git.add(['pvpoke_1500.csv', 'pvpoke_2500.csv', 'pvpoke_10000.csv'])
+    repo.git.add(['data/pvpoke_1500.csv', 'data/pvpoke_2500.csv', 'data/pvpoke_10000.csv'])
     repo.index.commit(f"自動更新 PvP 資料 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     origin = repo.remote(name='origin')
     origin.push()
-    print("已推送更新到 GitHub")
+    print("✅ 已推送更新到 GitHub")
 
 if __name__ == "__main__":
     main()

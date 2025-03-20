@@ -1,6 +1,4 @@
-flask
-flask-cors
 selenium
 pandas
 webdriver-manager
-gunicorn
+GitPython
