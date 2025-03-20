@@ -2,14 +2,9 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokemon PvP 爬蟲</title>
+    <title>Pokemon PvP 排名檢索</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 20px;
-        }
+        body { font-family: Arial, sans-serif; text-align: center; }
         #loading {
             display: none;
             font-size: 18px;
@@ -45,65 +40,46 @@
     </style>
 </head>
 <body>
-    <h2>Pokemon PvP 排名爬蟲</h2>
-    <label for="numRankings">請輸入要抓取的前幾名寶可夢：</label>
+    <h1>Pokemon PvP 排名檢索</h1>
+    <label for="numRankings">輸入要顯示的前幾名：</label>
     <input type="number" id="numRankings" value="50">
-    <button onclick="runScraper()">開始爬蟲</button>
+    <button onclick="fetchPokemonData()">載入資料</button>
 
-    <div id="loading">
-        <div class="spinner"></div>
-        <p>正在載入中，請稍候...</p>
-    </div>
-
-    <p id="errorMessage" class="error"></p>
-
-    <h3>XL 需要糖果的寶可夢：</h3>
+    <h3>需要XL糖果的寶可夢：</h3>
     <div>
         <span id="xl_pokemon"></span>
         <span class="copy-btn" onclick="copyToClipboard('xl_pokemon')">📋</span>
     </div>
 
-    <h3>非 XL 的寶可夢：</h3>
+    <h3>不需要XL糖果的寶可夢：</h3>
     <div>
         <span id="non_xl_pokemon"></span>
         <span class="copy-btn" onclick="copyToClipboard('non_xl_pokemon')">📋</span>
     </div>
 
     <script>
-        function runScraper() {
+        async function fetchPokemonData() {
             let numRankings = document.getElementById("numRankings").value;
-            let loading = document.getElementById("loading");
-            let errorMessage = document.getElementById("errorMessage");
-            let xlPokemon = document.getElementById("xl_pokemon");
-            let nonXlPokemon = document.getElementById("non_xl_pokemon");
+            const fileNames = ["pvpoke_1500.csv", "pvpoke_2500.csv", "pvpoke_10000.csv"];
+            let xlPokemon = new Set();
+            let nonXlPokemon = new Set();
 
-            // 清空舊的數據 & 顯示載入動畫
-            xlPokemon.innerText = "";
-            nonXlPokemon.innerText = "";
-            errorMessage.innerText = "";
-            loading.style.display = "block";
+            for (const fileName of fileNames) {
+                const response = await fetch(`https://raw.githubusercontent.com/mikaiyen/PVpokeCrawler/main/${fileName}`);
+                const csvText = await response.text();
+                const rows = csvText.trim().split('\n').slice(1);
 
-            fetch("https://your-app.onrender.com/run_scraper?numRankings=" + numRankings)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP 錯誤！狀態碼: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    xlPokemon.innerText = data.xl_pokemon;
-                    nonXlPokemon.innerText = data.non_xl_pokemon;
-                })
-                .catch(error => {
-                    console.error("Fetch error:", error);
-                    errorMessage.innerText = "載入失敗！請檢查伺服器是否運行中。";
-                })
-                .finally(() => {
-                    // 隱藏載入動畫
-                    loading.style.display = "none";
+                rows.slice(0, numRankings).forEach(row => {
+                    const [name, xl] = row.split(',');
+                    if (xl === '1') xlPokemon.add(name);
+                    else nonXlPokemon.add(name);
                 });
-        }
+            }
 
+            document.getElementById('xl_pokemon').innerText = Array.from(xlPokemon).sort().join(',');
+            document.getElementById('non_xl_pokemon').innerText = Array.from(nonXlPokemon).sort().join(',');
+
+        }
         function copyToClipboard(elementId) {
             let text = document.getElementById(elementId).innerText;
             navigator.clipboard.writeText(text).catch(err => {
