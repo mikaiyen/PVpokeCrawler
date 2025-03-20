@@ -42,7 +42,7 @@ def get_pvpoke_rankings(url, filename):
     # 儲存成 CSV 檔案
     data = pd.DataFrame({"Pokemon": names_list, "XL": xl_list})
     data.to_csv("data/"+filename, index=False, encoding="utf-8-sig")
-    print(f"✅ {filename} 資料已成功抓取並儲存。")
+    print(f"{filename} 資料已成功抓取並儲存。")
 
 def main():
     """主程式"""
@@ -62,7 +62,7 @@ def push_to_github():
     repo.index.commit(f"自動更新 PvP 資料 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     origin = repo.remote(name='origin')
     origin.push()
-    print("✅ 已推送更新到 GitHub")
+    print("已推送更新到 GitHub")
 
 if __name__ == "__main__":
     main()
