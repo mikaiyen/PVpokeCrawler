@@ -41,7 +41,7 @@ def get_pvpoke_rankings(url, filename):
     
     # 儲存成 CSV 檔案
     data = pd.DataFrame({"Pokemon": names_list, "XL": xl_list})
-    data.to_csv(filename, index=False, encoding="utf-8-sig")
+    data.to_csv("data/"+filename, index=False, encoding="utf-8-sig")
     print(f"✅ {filename} 資料已成功抓取並儲存。")
 
 def main():

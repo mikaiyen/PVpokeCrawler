@@ -65,7 +65,7 @@
             let nonXlPokemon = new Set();
 
             for (const fileName of fileNames) {
-                const response = await fetch(`https://raw.githubusercontent.com/mikaiyen/PVpokeCrawler/main/${fileName}`);
+                const response = await fetch(`https://raw.githubusercontent.com/mikaiyen/PVpokeCrawler/main/data/${fileName}`);
                 const csvText = await response.text();
                 const rows = csvText.trim().split('\n').slice(1);
 
