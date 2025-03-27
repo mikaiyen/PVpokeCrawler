@@ -56,7 +56,7 @@ def main():
             future.result()  # 確保所有爬蟲工作完成
     
     # 推送到 GitHub
-    push_to_github()
+    # push_to_github()
 
 def push_to_github():
     """將更新的檔案推送到 GitHub"""
