@@ -30,8 +30,8 @@ async function fetchPokemonData() {
         }
     }
 
-    document.getElementById('xl_pokemon').innerText = Array.from(xlPokemon).sort().join(', ');
-    document.getElementById('non_xl_pokemon').innerText = Array.from(nonXlPokemon).sort().join(', ');
+    document.getElementById('xl_pokemon').innerText = Array.from(xlPokemon).sort().join(',');
+    document.getElementById('non_xl_pokemon').innerText = Array.from(nonXlPokemon).sort().join(',');
     loading.style.display = "none";
 }
 
