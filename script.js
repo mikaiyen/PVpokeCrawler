@@ -1,4 +1,5 @@
 async function fetchPokemonData() {
+    fetchLastUpdatedTime();
     const numRankings = document.getElementById("numRankings").value;
     const fileNames = ["pvpoke_1500.csv", "pvpoke_2500.csv", "pvpoke_10000.csv"];
     const xlPokemon = new Set();
@@ -41,5 +42,20 @@ function copyToClipboard(elementId) {
         console.error("無法複製文字：", err);
     });
 }
+
+async function fetchLastUpdatedTime() {
+    try {
+        const response = await fetch("https://api.github.com/repos/mikaiyen/PVpokeCrawler/commits?path=data/pvpoke_1500.csv&page=1&per_page=1");
+        const commits = await response.json();
+        if (commits && commits[0]) {
+            const date = new Date(commits[0].commit.committer.date);
+            document.getElementById("last_updated").innerText = "最近更新時間：" + date.toLocaleString();
+        }
+    } catch (err) {
+        console.warn("❗無法取得更新時間", err);
+        document.getElementById("last_updated").innerText = "最近更新時間：取得失敗";
+    }
+}
+
 
 document.getElementById("loadDataBtn").addEventListener("click", fetchPokemonData);
