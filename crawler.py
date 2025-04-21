@@ -8,6 +8,11 @@ from concurrent.futures import ThreadPoolExecutor
 import os
 from datetime import datetime
 from git import Repo
+import shutil
+
+cache_path = os.path.join(os.path.expanduser("~"), ".wdm")
+if os.path.exists(cache_path):
+    shutil.rmtree(cache_path)
 
 # 爬取的網址
 URLS = {
