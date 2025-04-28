@@ -10,9 +10,11 @@ from datetime import datetime
 from git import Repo
 import shutil
 
-cache_path = os.path.join(os.path.expanduser("~"), ".wdm")
-if os.path.exists(cache_path):
-    shutil.rmtree(cache_path)
+# 自動清除壞掉的 .wdm cache
+cache_dir = os.path.join(os.path.expanduser("~"), ".wdm")
+if os.path.exists(cache_dir):
+    shutil.rmtree(cache_dir)
+    print("🧹 已清除 .wdm cache，等待重新下載乾淨的 driver")
 
 # 爬取的網址
 URLS = {
