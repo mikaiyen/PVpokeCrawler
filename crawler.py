@@ -14,21 +14,34 @@ import shutil
 cache_dir = os.path.join(os.path.expanduser("~"), ".wdm")
 if os.path.exists(cache_dir):
     shutil.rmtree(cache_dir)
-    print("🧹 已清除 .wdm cache，等待重新下載乾淨的 driver")
+    print("已清除 .wdm cache，等待重新下載乾淨的 driver")
 
 # 爬取的網址
 URLS = {
-    "pvpoke_1500.csv": "https://pvpoketw.com/rankings/all/1500/overall/",
-    "pvpoke_2500.csv": "https://pvpoketw.com/rankings/all/2500/overall/",
+    "pvpoke_1500.csv":  "https://pvpoketw.com/rankings/all/1500/overall/",
+    "pvpoke_2500.csv":  "https://pvpoketw.com/rankings/all/2500/overall/",
     "pvpoke_10000.csv": "https://pvpoketw.com/rankings/all/10000/overall/"
 }
 
 def setup_driver():
     """設定 Selenium WebDriver"""
+    from pathlib import Path
+    import shutil
+
+    # 安全清理 cache 下的 chromedriver 版本資料夾（避免 FileExistsError）
+    cache_path = Path.home() / ".wdm" / "drivers" / "chromedriver"
+    if cache_path.exists():
+        try:
+            shutil.rmtree(cache_path)
+            print(f"已清除 {cache_path}，避免重複建立資料夾錯誤")
+        except Exception as e:
+            print(f"無法刪除 cache 資料夾：{e}")
+
     options = webdriver.ChromeOptions()
     options.add_argument("--headless")
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
+    
     return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
 def get_pvpoke_rankings(url, filename):
