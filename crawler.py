@@ -147,20 +147,48 @@ def cleanup_crawler_resources(driver, user_data_dir, crawler_id):
         print(f"[{crawler_id}] 清理臨時目錄時發生錯誤: {e}")
 
 def kill_chrome_processes():
-    """清理殘留的 Chrome 進程"""
+    """只清理爬蟲相關的 Chrome 進程，保留正常使用的 Chrome"""
     try:
         killed_count = 0
-        for proc in psutil.process_iter(['pid', 'name']):
-            if 'chrome' in proc.info['name'].lower():
-                try:
-                    proc.kill()
-                    killed_count += 1
-                except (psutil.NoSuchProcess, psutil.AccessDenied):
-                    pass
+        crawler_ports = [9222, 9223, 9224]  # 爬蟲使用的除錯端口
+        
+        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+            try:
+                if 'chrome' in proc.info['name'].lower():
+                    cmdline = ' '.join(proc.info['cmdline'] or [])
+                    
+                    # 只殺死包含爬蟲相關參數的 Chrome 進程
+                    should_kill = False
+                    
+                    # 檢查是否包含爬蟲使用的除錯端口
+                    for port in crawler_ports:
+                        if f'--remote-debugging-port={port}' in cmdline:
+                            should_kill = True
+                            break
+                    
+                    # 檢查是否包含 headless 參數（爬蟲特有）
+                    if '--headless' in cmdline:
+                        should_kill = True
+                    
+                    # 檢查是否包含爬蟲的臨時目錄
+                    if 'chrome_profile_Crawler' in cmdline:
+                        should_kill = True
+                    
+                    if should_kill:
+                        proc.kill()
+                        killed_count += 1
+                        print(f"已終止爬蟲 Chrome 進程 PID: {proc.info['pid']}")
+                        
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                pass
+        
         if killed_count > 0:
-            print(f"已終止 {killed_count} 個 Chrome 進程")
+            print(f"共終止 {killed_count} 個爬蟲相關的 Chrome 進程")
+        else:
+            print("沒有找到需要清理的爬蟲 Chrome 進程")
+            
     except Exception as e:
-        print(f"清理 Chrome 進程時發生錯誤: {e}")
+        print(f"清理爬蟲 Chrome 進程時發生錯誤: {e}")
 
 def run_crawler(task):
     """運行單個爬蟲任務"""
