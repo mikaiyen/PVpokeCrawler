@@ -35,7 +35,7 @@ for i, ptype in enumerate(POKEMON_TYPES):
         "crawler_id": f"Crawler-{ptype}",
         "filename": f"{ptype}.csv",
         "url": f"https://db.pokemongohub.net/pokemon-list/best-per-type/{ptype}",
-        "debug_port": 9222 + i,  # 每個爬蟲使用不同端口
+        "debug_port": 9225 + i,  # 從9225開始分配端口
         "type": ptype
     })
 
@@ -124,6 +124,27 @@ def setup_driver(crawler_id, debug_port):
         except:
             pass
         raise
+    
+def clean_pokemon_name(raw_name):
+    """清理寶可夢名稱，移除括號內容並只保留最後一個單詞"""
+    if not raw_name:
+        return raw_name
+    
+    # 移除括號及其內容 (包括圓括號、方括號等)
+    import re
+    cleaned_name = re.sub(r'\([^)]*\)', '', raw_name)  # 移除圓括號內容
+    cleaned_name = re.sub(r'\[[^\]]*\]', '', cleaned_name)  # 移除方括號內容
+    cleaned_name = re.sub(r'\{[^}]*\}', '', cleaned_name)  # 移除大括號內容
+    
+    # 清理多餘空格
+    cleaned_name = cleaned_name.strip()
+    
+    # 取最後一個空格後的單詞
+    if cleaned_name and ' ' in cleaned_name:
+        return cleaned_name.split()[-1]
+    else:
+        return cleaned_name
+
 
 def cleanup_crawler_resources(driver, user_data_dir, crawler_id):
     """清理爬蟲相關資源"""
@@ -142,18 +163,29 @@ def cleanup_crawler_resources(driver, user_data_dir, crawler_id):
         print(f"[{crawler_id}] 清理臨時目錄時發生錯誤: {e}")
 
 def kill_chrome_processes():
-    """清理殘留的 Chrome 進程"""
+    """清理與本任務相關的 Chrome 進程 (端口 9225-9243)"""
     try:
         killed_count = 0
-        for proc in psutil.process_iter(['pid', 'name']):
-            if 'chrome' in proc.info['name'].lower():
-                try:
-                    proc.kill()
-                    killed_count += 1
-                except (psutil.NoSuchProcess, psutil.AccessDenied):
-                    pass
+        target_ports = set(range(9225, 9225 + len(POKEMON_TYPES)))
+        
+        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+            try:
+                if 'chrome' in proc.info['name'].lower():
+                    # 檢查命令行參數中是否包含我們的調試端口
+                    cmdline = ' '.join(proc.info.get('cmdline', []))
+                    for port in target_ports:
+                        if f'--remote-debugging-port={port}' in cmdline:
+                            proc.kill()
+                            killed_count += 1
+                            print(f"終止了使用端口 {port} 的 Chrome 進程 (PID: {proc.pid})")
+                            break
+            except (psutil.NoSuchProcess, psutil.AccessDenied, TypeError):
+                pass
+                
         if killed_count > 0:
-            print(f"已終止 {killed_count} 個 Chrome 進程")
+            print(f"已終止 {killed_count} 個與本任務相關的 Chrome 進程")
+        else:
+            print("沒有找到需要清理的 Chrome 進程")
     except Exception as e:
         print(f"清理 Chrome 進程時發生錯誤: {e}")
 
@@ -256,7 +288,9 @@ def run_crawler(task):
             # 方法1: 原本的方式
             try:
                 name_elems = results.find_elements(By.XPATH, './/a[contains(@href,"/pokemon/")]')
-                names = [e.text.strip() for e in name_elems if e.text.strip()]
+                raw_names = [e.text.strip() for e in name_elems if e.text.strip()]
+                # 清理名稱：移除括號內容並只保留最後一個單詞
+                names = [clean_pokemon_name(name) for name in raw_names if clean_pokemon_name(name)]
                 print(f"[{crawler_id}] 方法1找到 {len(names)} 個名稱")
             except:
                 print(f"[{crawler_id}] 方法1失敗")
@@ -265,7 +299,9 @@ def run_crawler(task):
             if len(names) == 0:
                 try:
                     name_elems = driver.find_elements(By.XPATH, '//a[contains(@href,"pokemon")]')
-                    names = [e.text.strip() for e in name_elems if e.text.strip()]
+                    raw_names = [e.text.strip() for e in name_elems if e.text.strip()]
+                    # 清理名稱：移除括號內容並只保留最後一個單詞
+                    names = [clean_pokemon_name(name) for name in raw_names if clean_pokemon_name(name)]
                     print(f"[{crawler_id}] 方法2找到 {len(names)} 個名稱")
                 except:
                     print(f"[{crawler_id}] 方法2失敗")
@@ -284,7 +320,9 @@ def run_crawler(task):
                         for link in pokemon_links[:50]:  # 限制50個
                             try:
                                 # 從URL中提取寶可夢名稱
-                                name = link.split('/')[-1].replace('-', ' ').title()
+                                raw_name = link.split('/')[-1].replace('-', ' ').title()
+                                # 清理名稱：移除括號內容並只保留最後一個單詞
+                                name = clean_pokemon_name(raw_name)
                                 if name:
                                     names.append(name)
                             except:
@@ -352,8 +390,8 @@ def main():
     print(f"\n開始並行執行 {len(CRAWLER_TASKS)} 個爬蟲任務...")
     
     # 使用線程池執行，每個線程處理一個任務
-    # 限制同時執行的線程數量，避免資源不足
-    max_workers = min(6, len(CRAWLER_TASKS))  # 最多6個同時執行
+    # 固定使用6個同時執行的線程
+    max_workers = 6
     
     with ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="PVE-Crawler") as executor:
         # 提交所有任務
@@ -406,28 +444,86 @@ def main():
     time.sleep(2)
     kill_chrome_processes()
     
+    # 合併所有CSV檔案
+    merge_success = merge_csv_files()
+    
+    if merge_success:
+        print("\n所有任務完成！合併檔案已儲存到 data/pve.csv")
+    else:
+        print("\n爬取完成，但合併檔案時發生錯誤")
+    
     # 可選：推送到 GitHub
     # push_to_github()
 
-def push_to_github():
-    """將更新的檔案推送到 GitHub"""
-    try:
-        repo = Repo(os.getcwd())
-        
-        # 檢查是否有變更
-        if repo.is_dirty() or repo.untracked_files:
-            # 添加所有 pve 資料夾下的 CSV 檔案
-            pve_files = [f"pve/{ptype}.csv" for ptype in POKEMON_TYPES]
-            repo.git.add(pve_files)
-            repo.index.commit(f"自動更新 PVE 屬性資料 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-            origin = repo.remote(name='origin')
-            origin.push()
-            print("已推送更新到 GitHub")
+def merge_csv_files():
+    """合併所有屬性的CSV檔案成一個總檔案"""
+    print("\n開始合併所有CSV檔案...")
+    
+    all_data = []
+    successful_files = []
+    
+    # 確保 data 資料夾存在
+    if not os.path.exists("data"):
+        os.makedirs("data")
+    
+    for ptype in POKEMON_TYPES:
+        csv_path = f"pve/{ptype}.csv"
+        if os.path.exists(csv_path):
+            try:
+                df = pd.read_csv(csv_path, encoding="utf-8-sig")
+                # 加入屬性欄位
+                df['type'] = ptype
+                # 重新排序欄位: type, rank, name
+                df = df[['type', 'rank', 'name']]
+                all_data.append(df)
+                successful_files.append(ptype)
+                print(f"✅ 已讀取 {ptype} 屬性資料 ({len(df)} 筆)")
+            except Exception as e:
+                print(f"❌ 讀取 {ptype}.csv 時發生錯誤: {e}")
         else:
-            print("沒有檔案變更，跳過 Git 推送")
+            print(f"⚠️  找不到 {ptype}.csv 檔案")
+    
+    if all_data:
+        # 合併所有資料
+        merged_df = pd.concat(all_data, ignore_index=True)
+        
+        # 儲存合併結果
+        output_path = "data/pve.csv"
+        merged_df.to_csv(output_path, index=False, encoding="utf-8-sig")
+        
+        print(f"\n🎉 合併完成！")
+        print(f"📁 輸出檔案: {output_path}")
+        print(f"📊 總筆數: {len(merged_df)} 筆資料")
+        print(f"📋 成功合併的屬性: {len(successful_files)}/{len(POKEMON_TYPES)}")
+        
+        # 顯示每個屬性的資料筆數統計
+        print(f"\n各屬性資料統計:")
+        type_counts = merged_df['type'].value_counts().sort_index()
+        for ptype, count in type_counts.items():
+            print(f"  {ptype.ljust(10)}: {count} 筆")
             
-    except Exception as e:
-        print(f"Git 推送時發生錯誤: {e}")
+        return True
+    else:
+        print("❌ 沒有找到任何可合併的資料")
+        return False
+    
+    # """將更新的檔案推送到 GitHub"""
+    # try:
+    #     repo = Repo(os.getcwd())
+        
+    #     # 檢查是否有變更
+    #     if repo.is_dirty() or repo.untracked_files:
+    #         # 添加合併後的PVE資料檔案
+    #         repo.git.add(['data/pve.csv'])
+    #         repo.index.commit(f"自動更新 PVE 合併資料 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    #         origin = repo.remote(name='origin')
+    #         origin.push()
+    #         print("已推送更新到 GitHub")
+    #     else:
+    #         print("沒有檔案變更，跳過 Git 推送")
+            
+    # except Exception as e:
+    #     print(f"Git 推送時發生錯誤: {e}")
 
 if __name__ == "__main__":
     main()

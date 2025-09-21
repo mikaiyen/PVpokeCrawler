@@ -78,6 +78,256 @@ h1 {
     margin-bottom: 30px;
     text-align: center;
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+.title-icon {
+    height: 1em;
+    width: auto;
+    vertical-align: middle;
+}
+
+/* 分頁導航 */
+.tab-nav {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 30px;
+    border-bottom: 2px solid rgba(102, 126, 234, 0.2);
+    padding-bottom: 20px;
+}
+
+.tab-btn {
+    padding: 12px 24px;
+    background: rgba(255, 255, 255, 0.7);
+    border: 2px solid rgba(102, 126, 234, 0.3);
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    color: #4a5568;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.tab-btn:hover {
+    background: rgba(102, 126, 234, 0.1);
+    transform: translateY(-2px);
+}
+
+.tab-btn.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: transparent;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+/* 分頁內容 */
+.tab-content {
+    display: none;
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 主頁樣式 */
+.welcome-section {
+    text-align: center;
+    padding: 20px 0;
+}
+
+.welcome-section h2 {
+    color: #2d3748;
+    font-size: 2rem;
+    margin-bottom: 30px;
+}
+
+.feature-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+    margin-bottom: 40px;
+}
+
+.feature-card {
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 16px;
+    padding: 30px;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+}
+
+.feature-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+
+.feature-card h3 {
+    color: #2d3748;
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+}
+
+.feature-card p {
+    color: #4a5568;
+    line-height: 1.6;
+}
+
+.info-section {
+    background: rgba(102, 126, 234, 0.1);
+    border-radius: 16px;
+    padding: 25px;
+    border-left: 4px solid #667eea;
+    text-align: left;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.info-section h3 {
+    color: #2d3748;
+    margin-bottom: 15px;
+}
+
+.info-section ul {
+    color: #4a5568;
+    line-height: 1.8;
+}
+
+.info-section li {
+    margin-bottom: 8px;
+}
+
+/* PVE 樣式 */
+.pve-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    align-items: start;
+}
+
+.pve-controls h3, .pve-results h3 {
+    color: #2d3748;
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.type-controls {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.type-control-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 20px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    transition: all 0.3s ease;
+}
+
+.type-control-item:hover {
+    background: rgba(255, 255, 255, 0.95);
+    transform: translateX(5px);
+}
+
+.type-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    color: #4a5568;
+    flex: 1;
+}
+
+.type-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.type-input-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.type-input {
+    width: 60px;
+    padding: 8px 12px;
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+}
+
+.pve-output-list {
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 16px;
+    padding: 25px;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.type-result {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.type-result:last-child {
+    border-bottom: none;
+}
+
+.type-result h4 {
+    color: #2d3748;
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.type-pokemon-list {
+    color: #4a5568;
+    line-height: 1.6;
+    font-family: 'Monaco', 'Consolas', monospace;
+    background: rgba(102, 126, 234, 0.05);
+    padding: 12px;
+    border-radius: 8px;
 }
 
 h1::after {
@@ -91,13 +341,6 @@ h1::after {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-radius: 2px;
     animation: expandWidth 1s ease-out 0.5s both;
-}
-
-.title-icon {
-    height: 1em;
-    width: auto;
-    vertical-align: middle;
-    margin-right: 0.3em;
 }
 
 @keyframes expandWidth {
@@ -130,6 +373,7 @@ h1::after {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 20px;
+    margin-bottom: 25px;
 }
 
 .input-row {
@@ -142,6 +386,26 @@ h1::after {
 .input-row input {
     width: 60px;
     text-align: center;
+    padding: 8px 12px;
+    font-size: 14px;
+    border: 2px solid rgba(102, 126, 234, 0.3);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.9);
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    font-weight: 600;
+}
+
+.input-row input:focus {
+    outline: none;
+    border-color: #667eea;
+    transform: scale(1.02);
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+}
+
+.input-row span {
+    font-size: 0.9rem;
+    color: #4a5568;
+    font-weight: 500;
 }
 
 .input-item {
@@ -154,6 +418,24 @@ h1::after {
     border-radius: 12px;
     border: 1px solid rgba(102, 126, 234, 0.2);
     transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.league-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    padding: 8px;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    border: 2px solid rgba(102, 126, 234, 0.2);
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    object-fit: contain;
+}
+
+.input-item:hover .league-icon {
+    transform: scale(1.1) rotate(5deg);
+    border-color: #667eea;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
 .input-item:hover {
@@ -412,6 +694,13 @@ h1::after {
 
     h1 {
         font-size: 2.2rem;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .tab-nav {
+        flex-direction: column;
+        gap: 10px;
     }
 
     .input-grid {
@@ -425,6 +714,23 @@ h1::after {
 
     .load-btn {
         width: 100%;
+    }
+
+    .feature-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .pve-container {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .type-controls {
+        max-height: 300px;
+    }
+
+    .pve-output-list {
+        max-height: 400px;
     }
 }
 
