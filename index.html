@@ -53,6 +53,7 @@
 
         <!-- PVP 分頁內容 -->
         <div id="pvp" class="tab-content">
+            <h2 class="page-title">Pokemon GO PVP 排名檢索</h2>
             <div class="input-section">
                 <div class="input-grid">
                     <div class="input-item">
@@ -117,26 +118,14 @@
 
         <!-- PVE 分頁內容 -->
         <div id="pve" class="tab-content">
+            <h2 class="page-title">Pokemon GO PVE 排名檢索</h2>
             <div class="pve-container">
-                <div class="pve-controls">
-                    <h3>🎯 選擇各屬性排名數量</h3>
-                    <div class="type-controls">
-                        <!-- 動態生成的屬性控制項 -->
-                    </div>
-                    <div class="button-container">
-                        <button id="loadPveBtn" class="load-btn">
-                            <span>🔍 載入 PVE 資料</span>
-                        </button>
-                    </div>
+                <div id="pve_loading" class="loading">
+                    <div class="spinner"></div>
+                    <div class="loading-text">載入中，請稍候...</div>
                 </div>
-                
-                <div class="pve-results">
-                    <h3>📊 各屬性最強 Pokemon</h3>
-                    <div id="pve_loading" class="loading">
-                        <div class="spinner"></div>
-                        <div class="loading-text">載入中，請稍候...</div>
-                    </div>
-                    <div id="pve_output" class="pve-output-list"></div>
+                <div class="pve-grid" id="pve_grid">
+                    <!-- 動態生成的屬性行 -->
                 </div>
             </div>
         </div>

@@ -217,117 +217,224 @@ h1 {
     margin-bottom: 8px;
 }
 
+/* 分頁頁面標題 */
+.page-title {
+    color: #2d3748;
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 30px;
+    text-align: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
 /* PVE 樣式 */
 .pve-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 30px;
-    align-items: start;
+    padding: 20px 0;
 }
 
-.pve-controls h3, .pve-results h3 {
+.pve-container h3 {
     color: #2d3748;
     font-size: 1.5rem;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
     text-align: center;
+    font-weight: 600;
 }
 
-.type-controls {
+.pve-grid {
     display: grid;
     grid-template-columns: 1fr;
     gap: 15px;
-    max-height: 500px;
-    overflow-y: auto;
-    padding-right: 10px;
 }
 
-.type-control-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 15px 20px;
+.pve-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    padding: 20px;
     background: rgba(255, 255, 255, 0.8);
     border-radius: 12px;
     border: 1px solid rgba(102, 126, 234, 0.2);
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-.type-control-item:hover {
+.pve-row:hover {
     background: rgba(255, 255, 255, 0.95);
-    transform: translateX(5px);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
 }
 
-.type-label {
+.pve-left {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 15px;
+    align-items: center;
+}
+
+.pve-left {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 15px;
+    align-items: center;
+}
+
+.pve-info {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.pve-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+}
+
+.pve-type-label {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     font-weight: 600;
-    color: #4a5568;
-    flex: 1;
+    color: #2d3748;
+    font-size: 1.1rem;
 }
 
-.type-icon {
-    width: 24px;
-    height: 24px;
+.pve-type-icon {
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 12px;
+    font-size: 16px;
     font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-.type-input-group {
+.pve-input-group {
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-.type-input {
+.pve-input-group span {
+    font-size: 0.95rem;
+    color: #4a5568;
+    font-weight: 500;
+}
+
+.pve-type-input {
     width: 60px;
-    padding: 8px 12px;
-    border: 1px solid rgba(102, 126, 234, 0.3);
+    padding: 8px 10px;
+    border: 2px solid rgba(102, 126, 234, 0.3);
     border-radius: 8px;
     text-align: center;
     font-weight: 600;
+    font-size: 14px;
+    background: rgba(255, 255, 255, 0.9);
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-.pve-output-list {
-    background: rgba(255, 255, 255, 0.8);
-    border-radius: 16px;
-    padding: 25px;
-    border: 1px solid rgba(102, 126, 234, 0.2);
-    max-height: 600px;
-    overflow-y: auto;
+.pve-type-input:focus {
+    outline: none;
+    border-color: #667eea;
+    transform: scale(1.02);
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
 }
 
-.type-result {
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+.pve-search-btn {
+    padding: 10px 16px;
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);
+    white-space: nowrap;
+    width: 100%;
 }
 
-.type-result:last-child {
-    border-bottom: none;
+.pve-search-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(72, 187, 120, 0.4);
 }
 
-.type-result h4 {
+.pve-search-btn:active {
+    transform: translateY(0);
+}
+
+.pve-search-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.pve-copy-btn {
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    white-space: nowrap;
+    width: 100%;
+}
+
+.pve-copy-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.pve-copy-btn:active {
+    transform: translateY(0);
+}
+
+.pve-copy-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.pve-copy-btn.copied {
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    animation: copySuccess 0.3s ease-in-out;
+}
+
+.pve-result {
+    background: rgba(102, 126, 234, 0.05);
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid rgba(102, 126, 234, 0.1);
+    font-family: 'Monaco', 'Consolas', monospace;
+    line-height: 1.6;
     color: #2d3748;
-    font-size: 1.2rem;
-    margin-bottom: 10px;
+    min-height: 80px;
     display: flex;
     align-items: center;
-    gap: 10px;
+    word-break: break-all;
 }
 
-.type-pokemon-list {
-    color: #4a5568;
-    line-height: 1.6;
-    font-family: 'Monaco', 'Consolas', monospace;
-    background: rgba(102, 126, 234, 0.05);
-    padding: 12px;
-    border-radius: 8px;
+.pve-result.loading {
+    justify-content: center;
+    font-style: italic;
+    color: #667eea;
+}
+
+.pve-result.empty {
+    justify-content: center;
+    color: #a0aec0;
+    font-style: italic;
 }
 
 h1::after {
@@ -720,17 +827,37 @@ h1::after {
         grid-template-columns: 1fr;
     }
 
-    .pve-container {
+    .pve-row {
         grid-template-columns: 1fr;
-        gap: 20px;
+        gap: 15px;
     }
 
-    .type-controls {
-        max-height: 300px;
+    .pve-left {
+        grid-template-columns: 1fr;
+        gap: 12px;
     }
 
-    .pve-output-list {
-        max-height: 400px;
+    .pve-type-label {
+        justify-content: center;
+    }
+
+    .pve-input-group {
+        justify-content: center;
+    }
+
+    .pve-buttons {
+        flex-direction: row;
+        gap: 10px;
+    }
+
+    .pve-search-btn, .pve-copy-btn {
+        width: auto;
+        flex: 1;
+    }
+
+    .pve-result {
+        text-align: center;
+        min-height: 60px;
     }
 }
 

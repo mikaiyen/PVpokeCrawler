@@ -46,119 +46,158 @@ function showTab(tabName) {
 
 // 初始化 PVE 控制項
 function initializePveControls() {
-    const container = document.querySelector('.type-controls');
+    const container = document.getElementById('pve_grid');
     if (container.children.length > 0) return; // 已經初始化過
     
     Object.entries(TYPE_CONFIG).forEach(([type, config]) => {
-        const controlItem = document.createElement('div');
-        controlItem.className = 'type-control-item';
-        controlItem.innerHTML = `
-            <div class="type-label">
-                <div class="type-icon" style="background-color: ${config.color}">
-                    ${config.icon}
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'pve-row';
+        rowDiv.innerHTML = `
+            <div class="pve-left">
+                <div class="pve-info">
+                    <div class="pve-type-label">
+                        <div class="pve-type-icon" style="background-color: ${config.color}">
+                            ${config.icon}
+                        </div>
+                        <span>${config.name}系 (${type})</span>
+                    </div>
+                    <div class="pve-input-group">
+                        <span>搜尋前</span>
+                        <input type="number" class="pve-type-input" id="pve_${type}" value="10" min="1" max="50">
+                        <span>名</span>
+                    </div>
                 </div>
-                <span>${config.name}系 (${type})</span>
+                <div class="pve-buttons">
+                    <button class="pve-search-btn" onclick="fetchSingleTypeData('${type}')">
+                        🔍 搜尋
+                    </button>
+                    <button class="pve-copy-btn" id="copy_${type}" onclick="copyPveResult('${type}', this)" disabled>
+                        📋 複製
+                    </button>
+                </div>
             </div>
-            <div class="type-input-group">
-                <span>前</span>
-                <input type="number" class="type-input" id="type_${type}" value="10" min="1" max="50">
-                <span>名</span>
+            <div class="pve-result" id="result_${type}">
+                點擊搜尋按鈕載入資料
             </div>
         `;
-        container.appendChild(controlItem);
+        container.appendChild(rowDiv);
     });
 }
 
-// PVE 數據載入功能
-async function fetchPveData() {
-    const pveLoading = document.getElementById('pve_loading');
-    const pveOutput = document.getElementById('pve_output');
-    const loadBtn = document.getElementById('loadPveBtn');
+// 複製 PVE 結果的功能
+function copyPveResult(type, buttonElement) {
+    const resultElement = document.getElementById(`result_${type}`);
+    const text = resultElement.textContent.trim();
+    
+    if (!text || text === '點擊搜尋按鈕載入資料' || text === '載入中...' || text === '無資料' || text === '該屬性暫無資料' || text === '載入失敗，請重試') {
+        return; // 不複製無效內容
+    }
+    
+    navigator.clipboard.writeText(text).then(() => {
+        // 複製成功動畫
+        const originalText = buttonElement.innerHTML;
+        buttonElement.classList.add('copied');
+        buttonElement.innerHTML = '✅ 已複製';
+        
+        setTimeout(() => {
+            buttonElement.classList.remove('copied');
+            buttonElement.innerHTML = originalText;
+        }, 2000);
+    }).catch(err => {
+        console.error("無法複製文字：", err);
+        alert("複製失敗，請手動選取文字複製。");
+    });
+}
+
+// 載入單一屬性資料
+async function fetchSingleTypeData(type) {
+    const resultDiv = document.getElementById(`result_${type}`);
+    const searchBtn = resultDiv.parentElement.querySelector('.pve-search-btn');
+    const copyBtn = document.getElementById(`copy_${type}`);
+    const inputValue = document.getElementById(`pve_${type}`).value;
+    const count = parseInt(inputValue) || 10;
     
     // 顯示載入狀態
-    pveLoading.style.display = 'block';
-    pveOutput.innerHTML = '';
-    loadBtn.disabled = true;
-    loadBtn.innerHTML = '<span>⏳ 載入中...</span>';
+    resultDiv.className = 'pve-result loading';
+    resultDiv.textContent = '載入中...';
+    searchBtn.disabled = true;
+    searchBtn.innerHTML = '⏳ 載入中';
+    copyBtn.disabled = true;
     
     try {
-        // 載入 PVE CSV 資料
-        const response = await fetch('https://raw.githubusercontent.com/mikaiyen/PVpokeCrawler/main/data/pve.csv');
-        const csvText = await response.text();
-        const rows = csvText.trim().split('\n').slice(1); // 移除標題行
-        
-        // 解析 CSV 資料
-        const pveData = {};
-        rows.forEach(row => {
-            const [type, rank, name] = row.split(',');
-            if (!pveData[type]) {
-                pveData[type] = [];
-            }
-            pveData[type].push({ rank: parseInt(rank), name: name.trim() });
-        });
-        
-        // 根據用戶設定生成結果
-        const results = [];
-        Object.entries(TYPE_CONFIG).forEach(([type, config]) => {
-            const inputValue = document.getElementById(`type_${type}`).value;
-            const count = parseInt(inputValue) || 10;
+        // 載入 PVE CSV 資料（如果還沒載入）
+        if (!window.pveData) {
+            const response = await fetch('https://raw.githubusercontent.com/mikaiyen/PVpokeCrawler/main/data/pve.csv');
+            const csvText = await response.text();
+            const rows = csvText.trim().split('\n').slice(1); // 移除標題行
             
-            if (pveData[type]) {
-                const topPokemon = pveData[type]
-                    .sort((a, b) => a.rank - b.rank)
-                    .slice(0, count)
-                    .map(p => p.name);
-                
-                if (topPokemon.length > 0) {
-                    results.push({
-                        type: type,
-                        config: config,
-                        pokemon: topPokemon,
-                        count: count
-                    });
+            // 解析 CSV 資料並存到全域變數
+            window.pveData = {};
+            rows.forEach(row => {
+                const [pokemonType, rank, name] = row.split(',');
+                if (!window.pveData[pokemonType]) {
+                    window.pveData[pokemonType] = [];
                 }
-            }
-        });
+                window.pveData[pokemonType].push({ 
+                    rank: parseInt(rank), 
+                    name: name.trim() 
+                });
+            });
+        }
         
-        // 顯示結果
-        setTimeout(() => {
-            displayPveResults(results);
-            pveLoading.style.display = 'none';
-            loadBtn.disabled = false;
-            loadBtn.innerHTML = '<span>🔍 載入 PVE 資料</span>';
-        }, 500);
+        // 取得該屬性的前N名Pokemon
+        if (window.pveData[type]) {
+            const topPokemon = window.pveData[type]
+                .sort((a, b) => a.rank - b.rank)
+                .slice(0, count)
+                .map(p => p.name);
+            
+            // 去除重複的Pokemon名稱，保持排名順序
+            const uniquePokemon = [];
+            const seenNames = new Set();
+            
+            topPokemon.forEach(name => {
+                if (!seenNames.has(name)) {
+                    seenNames.add(name);
+                    uniquePokemon.push(name);
+                }
+            });
+            
+            setTimeout(() => {
+                resultDiv.className = 'pve-result';
+                resultDiv.textContent = uniquePokemon.length > 0 ? uniquePokemon.join(', ') : '無資料';
+                searchBtn.disabled = false;
+                searchBtn.innerHTML = '🔍 搜尋';
+                
+                // 啟用複製按鈕（只有在有有效資料時）
+                if (uniquePokemon.length > 0) {
+                    copyBtn.disabled = false;
+                } else {
+                    copyBtn.disabled = true;
+                }
+            }, 300);
+        } else {
+            setTimeout(() => {
+                resultDiv.className = 'pve-result empty';
+                resultDiv.textContent = '該屬性暫無資料';
+                searchBtn.disabled = false;
+                searchBtn.innerHTML = '🔍 搜尋';
+                copyBtn.disabled = true;
+            }, 300);
+        }
         
     } catch (error) {
-        console.error('載入 PVE 資料失敗:', error);
-        alert('PVE 資料載入失敗，請確認網路連接。');
-        pveLoading.style.display = 'none';
-        loadBtn.disabled = false;
-        loadBtn.innerHTML = '<span>🔍 載入 PVE 資料</span>';
+        console.error(`載入 ${type} 屬性資料失敗:`, error);
+        resultDiv.className = 'pve-result empty';
+        resultDiv.textContent = '載入失敗，請重試';
+        searchBtn.disabled = false;
+        searchBtn.innerHTML = '🔍 搜尋';
+        copyBtn.disabled = true;
     }
 }
 
-// 顯示 PVE 結果
-function displayPveResults(results) {
-    const container = document.getElementById('pve_output');
-    container.innerHTML = '';
-    
-    results.forEach(result => {
-        const resultDiv = document.createElement('div');
-        resultDiv.className = 'type-result';
-        resultDiv.innerHTML = `
-            <h4>
-                <span class="type-icon" style="background-color: ${result.config.color}">
-                    ${result.config.icon}
-                </span>
-                ${result.config.name}系 - 前 ${result.count} 名
-            </h4>
-            <div class="type-pokemon-list">${result.pokemon.join(', ')}</div>
-        `;
-        container.appendChild(resultDiv);
-    });
-    
-    console.log(`PVE 資料載入完成: ${results.length} 個屬性系別`);
-}// 創建背景粒子效果
+// 移除舊的PVE相關函數
+// fetchPveData 和 displayPveResults 函數已不需要// 創建背景粒子效果
 function createParticles() {
     const particlesContainer = document.querySelector('.particles');
     const particleCount = 20;
@@ -300,9 +339,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // 綁定 PVP 載入按鈕點擊事件
     document.getElementById("loadDataBtn").addEventListener("click", fetchPokemonData);
     
-    // 綁定 PVE 載入按鈕點擊事件
-    document.getElementById("loadPveBtn").addEventListener("click", fetchPveData);
-    
     // 綁定 PVP 輸入框的 Enter 鍵事件
     const pvpInputs = ['num1500', 'num2500', 'num10000'];
     pvpInputs.forEach(inputId => {
@@ -313,17 +349,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // 當 PVE 分頁被激活時，綁定所有屬性輸入框的 Enter 鍵事件
+    // 當 PVE 分頁被激活時，綁定輸入框的 Enter 鍵事件
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('tab-btn') && e.target.textContent === 'PVE') {
             setTimeout(() => {
                 // 等待 DOM 更新後再綁定事件
                 Object.keys(TYPE_CONFIG).forEach(type => {
-                    const input = document.getElementById(`type_${type}`);
+                    const input = document.getElementById(`pve_${type}`);
                     if (input) {
                         input.addEventListener("keypress", function(e) {
                             if (e.key === 'Enter') {
-                                fetchPveData();
+                                fetchSingleTypeData(type);
                             }
                         });
                     }
