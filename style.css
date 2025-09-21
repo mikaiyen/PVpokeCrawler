@@ -1,4 +1,8 @@
-* {
+label {
+    font-weight: 600;
+    color: #4a5568;
+    font-size: 1.1rem;
+}* {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -89,6 +93,13 @@ h1::after {
     animation: expandWidth 1s ease-out 0.5s both;
 }
 
+.title-icon {
+    height: 1em;
+    width: auto;
+    vertical-align: middle;
+    margin-right: 0.3em;
+}
+
 @keyframes expandWidth {
     from { width: 0; }
     to { width: 80px; }
@@ -115,36 +126,78 @@ h1::after {
     }
 }
 
-.input-group {
+.input-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.input-row {
     display: flex;
     align-items: center;
+    gap: 8px;
     justify-content: center;
-    gap: 15px;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
 }
 
-label {
+.input-row input {
+    width: 60px;
+    text-align: center;
+}
+
+.input-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 12px;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.input-item:hover {
+    background: rgba(255, 255, 255, 0.9);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+}
+
+.input-item label {
     font-weight: 600;
     color: #4a5568;
-    font-size: 1.1rem;
+    font-size: 1rem;
+    text-align: center;
 }
 
-#numRankings {
+.input-item input {
     padding: 12px 20px;
     font-size: 16px;
     border: 2px solid rgba(102, 126, 234, 0.3);
     border-radius: 12px;
     background: rgba(255, 255, 255, 0.9);
     transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    min-width: 120px;
+    width: 100px;
+    text-align: center;
+    font-weight: 600;
 }
 
-#numRankings:focus {
+.input-item input:focus {
     outline: none;
     border-color: #667eea;
     transform: scale(1.02);
     box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+}
+
+.cp-label {
+    font-size: 0.9rem;
+    color: #667eea;
+    font-weight: 500;
+}
+
+.button-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
 }
 
 .load-btn {
@@ -361,9 +414,13 @@ label {
         font-size: 2.2rem;
     }
 
-    .input-group {
-        flex-direction: column;
+    .input-grid {
+        grid-template-columns: 1fr;
         gap: 15px;
+    }
+
+    .input-item {
+        padding: 15px;
     }
 
     .load-btn {

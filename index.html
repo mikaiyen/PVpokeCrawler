@@ -11,12 +11,42 @@
     <div class="particles"></div>
 
     <div class="container">
-        <h1>🏆 Pokemon PvP 排名檢索</h1>
+        <h1>
+            <img src="/source/GO_Battle_League.webp" alt="GO Battle League" class="title-icon">
+            Pokemon PvP 排名檢索
+        </h1>
         
         <div class="input-section">
-            <div class="input-group">
-                <label for="numRankings">顯示前幾名寶可夢：</label>
-                <input type="number" id="numRankings" value="50" min="1" max="100">
+            <div class="input-grid">
+                <div class="input-item">
+                <img src="/source/Battle_League_Great.webp" alt="Great League" class="league-icon">
+                <label for="num1500">超級聯盟 (Great League)</label>
+                <div class="input-row">
+                    <span>搜尋前</span>
+                    <input type="number" id="num1500" value="50" min="1" max="100">
+                    <span>名</span>
+                </div>
+            </div>
+            <div class="input-item">
+                <img src="/source/Battle_League_Ultra.webp" alt="Ultra League" class="league-icon">
+                <label for="num2500">高級聯盟 (Ultra League)</label>
+                <div class="input-row">
+                    <span>搜尋前</span>
+                    <input type="number" id="num2500" value="50" min="1" max="100">
+                    <span>名</span>
+                </div>
+            </div>
+            <div class="input-item">
+                <img src="/source/Battle_League_Master.webp" alt="Master League" class="league-icon">
+                <label for="num10000">大師聯盟 (Master League)</label>
+                <div class="input-row">
+                    <span>搜尋前</span>
+                    <input type="number" id="num10000" value="50" min="1" max="100">
+                    <span>名</span>
+                </div>
+            </div>
+            </div>
+            <div class="button-container">
                 <button id="loadDataBtn" class="load-btn">
                     <span>🚀 載入資料</span>
                 </button>

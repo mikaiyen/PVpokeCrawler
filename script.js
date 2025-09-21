@@ -17,8 +17,18 @@ function createParticles() {
 // 主要數據載入函數
 async function fetchPokemonData() {
     fetchLastUpdatedTime();
-    const numRankings = document.getElementById("numRankings").value;
-    const fileNames = ["pvpoke_1500.csv", "pvpoke_2500.csv", "pvpoke_10000.csv"];
+    
+    // 獲取三個不同CP級別的數量設定
+    const num1500 = document.getElementById("num1500").value;
+    const num2500 = document.getElementById("num2500").value;
+    const num10000 = document.getElementById("num10000").value;
+    
+    const fileConfigs = [
+        { fileName: "pvpoke_1500.csv", numRankings: num1500, league: "Great League (1500)" },
+        { fileName: "pvpoke_2500.csv", numRankings: num2500, league: "Ultra League (2500)" },
+        { fileName: "pvpoke_10000.csv", numRankings: num10000, league: "Master League (10000)" }
+    ];
+    
     const xlPokemon = new Set();
     const nonXlPokemon = new Set();
     const loading = document.getElementById("loading");
@@ -38,22 +48,33 @@ async function fetchPokemonData() {
 
     try {
         // 載入並處理每個CSV文件
-        for (const fileName of fileNames) {
-            const response = await fetch("https://raw.githubusercontent.com/mikaiyen/PVpokeCrawler/main/data/"+fileName);
+        for (const config of fileConfigs) {
+            console.log(`正在載入 ${config.league}: 前 ${config.numRankings} 名`);
+            
+            const response = await fetch(`https://raw.githubusercontent.com/mikaiyen/PVpokeCrawler/main/data/${config.fileName}`);
             const csvText = await response.text();
             const rows = csvText.trim().split('\n').slice(1);
 
-            rows.slice(0, numRankings).forEach(row => {
+            // 根據設定的數量取得對應筆數的資料
+            rows.slice(0, parseInt(config.numRankings)).forEach(row => {
                 const [name, xl] = row.split(',');
-                if (xl === '1') xlPokemon.add(name);
-                else nonXlPokemon.add(name);
+                if (name && name.trim()) {  // 確保有有效的名稱
+                    if (xl === '1') {
+                        xlPokemon.add(name.trim());
+                    } else {
+                        nonXlPokemon.add(name.trim());
+                    }
+                }
             });
         }
 
         // 動畫顯示結果
         setTimeout(() => {
-            document.getElementById('xl_pokemon').innerText = Array.from(xlPokemon).sort().join(', ');
-            document.getElementById('non_xl_pokemon').innerText = Array.from(nonXlPokemon).sort().join(', ');
+            const xlArray = Array.from(xlPokemon).sort();
+            const nonXlArray = Array.from(nonXlPokemon).sort();
+            
+            document.getElementById('xl_pokemon').innerText = xlArray.length > 0 ? xlArray.join(', ') : '無資料';
+            document.getElementById('non_xl_pokemon').innerText = nonXlArray.length > 0 ? nonXlArray.join(', ') : '無資料';
             
             loading.style.display = "none";
             results.classList.remove("hidden");
@@ -61,6 +82,8 @@ async function fetchPokemonData() {
             
             loadBtn.disabled = false;
             loadBtn.innerHTML = '<span>🚀 載入資料</span>';
+            
+            console.log(`載入完成: XL糖果 ${xlArray.length} 隻, 非XL ${nonXlArray.length} 隻`);
         }, 500);
 
     } catch (error) {
@@ -117,10 +140,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // 綁定載入按鈕點擊事件
     document.getElementById("loadDataBtn").addEventListener("click", fetchPokemonData);
     
-    // 綁定輸入框 Enter 鍵事件
-    document.getElementById("numRankings").addEventListener("keypress", function(e) {
-        if (e.key === 'Enter') {
-            fetchPokemonData();
-        }
+    // 綁定所有輸入框的 Enter 鍵事件
+    const inputs = ['num1500', 'num2500', 'num10000'];
+    inputs.forEach(inputId => {
+        document.getElementById(inputId).addEventListener("keypress", function(e) {
+            if (e.key === 'Enter') {
+                fetchPokemonData();
+            }
+        });
     });
 });
