@@ -2,6 +2,10 @@
 
 一個全自動的 Pokemon PvP 排名數據爬取系統，支持並行爬取多個 CP 級別的排名資料，並提供現代化的網頁介面查看結果。
 
+## 🌐 網頁展示
+
+https://mikaiyen.github.io/PVpokeCrawler/
+
 ## 📋 專案概述
 
 本專案包含兩個主要部分：
@@ -203,9 +207,6 @@ A: 編輯 `.github/workflows/crawler.yml` 中的 cron 表達式。
 ### Q: 前端無法載入數據？
 A: 確認 GitHub Pages 已啟用，且 CSV 檔案已正確生成。
 
-## 🌐 網頁展示
-
-https://mikaiyen.github.io/PVpokeCrawler/
 
 ---
 
