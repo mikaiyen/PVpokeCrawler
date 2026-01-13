@@ -1,0 +1,28 @@
+{
+  "update_time": "2026-01-13T20:02:02.778360",
+  "update_time_readable": "2026-01-13 20:02:02",
+  "timezone": "local",
+  "files": [
+    {
+      "file": "data/pvpoke_1500.csv",
+      "modified": "2026-01-13T19:36:06.993537"
+    },
+    {
+      "file": "data/pvpoke_2500.csv",
+      "modified": "2026-01-13T19:36:03.829227"
+    },
+    {
+      "file": "data/pvpoke_10000.csv",
+      "modified": "2026-01-13T19:35:58.105181"
+    },
+    {
+      "file": "data/pve.csv",
+      "modified": "2026-01-13T20:02:02.093765"
+    }
+  ],
+  "summary": {
+    "pvp_count": 3,
+    "pve_count": 1,
+    "total_count": 4
+  }
+}
