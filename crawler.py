@@ -82,7 +82,7 @@ def create_unique_user_data_dir(crawler_id):
     return unique_dir
 
 def setup_driver(crawler_id, debug_port):
-    """為指定的爬蟲設定 Selenium WebDriver - 結合舊版本的簡潔性和新版本的穩定性"""
+    """為指定的爬蟲設定 Selenium WebDriver"""
     print(f"[{crawler_id}] 正在初始化 WebDriver...")
     
     # 創建獨立的用戶資料目錄
@@ -90,7 +90,7 @@ def setup_driver(crawler_id, debug_port):
     
     options = webdriver.ChromeOptions()
     
-    # 基本選項 - 保持舊版本的設定
+    # 基本選項
     options.add_argument("--headless=new")
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
@@ -100,20 +100,23 @@ def setup_driver(crawler_id, debug_port):
     options.add_argument(f"--user-data-dir={user_data_dir}")
     options.add_argument(f"--remote-debugging-port={debug_port}")
     
-    # 性能優化選項 - 保留JavaScript但優化其他
+    # 性能優化選項 - 保留 JavaScript（網站需要）
     options.add_argument("--disable-extensions")
     options.add_argument("--disable-plugins")
-    options.add_argument("--disable-images")
-    # 移除 --disable-javascript，因為網站需要JS
+    # 不要禁用圖片，可能影響頁面載入判斷
+    # options.add_argument("--disable-images")
     options.add_argument("--disable-web-security")
     options.add_argument("--disable-features=VizDisplayCompositor")
     options.add_argument("--disable-ipc-flooding-protection")
     
-    # 記憶體優化 - 使用更保守的設定
+    # 視窗大小 - 確保頁面正常渲染
+    options.add_argument("--window-size=1920,1080")
+    
+    # 記憶體優化
     options.add_argument("--memory-pressure-off")
     options.add_argument("--max_old_space_size=2048")
     
-    # 新增穩定性選項
+    # 穩定性選項
     options.add_argument("--disable-background-timer-throttling")
     options.add_argument("--disable-backgrounding-occluded-windows")
     options.add_argument("--disable-renderer-backgrounding")
@@ -121,6 +124,9 @@ def setup_driver(crawler_id, debug_port):
     options.add_argument("--disable-default-apps")
     options.add_argument("--no-first-run")
     options.add_argument("--disable-sync")
+    
+    # User Agent - 模擬正常瀏覽器
+    options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
     
     # 獲取 ChromeDriver 路徑
     chrome_driver_path = get_driver_path()
@@ -130,8 +136,8 @@ def setup_driver(crawler_id, debug_port):
         service = Service(chrome_driver_path)
         driver = webdriver.Chrome(service=service, options=options)
         
-        # 使用舊版本的超時設定
-        driver.set_page_load_timeout(30)
+        # 增加超時時間
+        driver.set_page_load_timeout(60)
         driver.implicitly_wait(10)
         
         print(f"[{crawler_id}] WebDriver 初始化成功，使用端口: {debug_port}")
@@ -207,30 +213,78 @@ def kill_chrome_processes():
     except Exception as e:
         print(f"清理爬蟲 Chrome 進程時發生錯誤: {e}")
 
-def simple_wait_for_elements(driver, crawler_id, max_wait=15):
-    """簡單的等待策略 - 結合舊版本的簡潔性和適當的等待"""
+def scroll_and_wait(driver, crawler_id):
+    """滾動頁面並等待動態內容載入"""
+    print(f"[{crawler_id}] 滾動頁面以觸發動態載入...")
+    
+    try:
+        # 滾動到頁面底部再回到頂部，觸發所有內容載入
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(2)
+        driver.execute_script("window.scrollTo(0, 0);")
+        time.sleep(1)
+        
+        # 再次滾動到中間位置
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight / 2);")
+        time.sleep(1)
+        
+    except Exception as e:
+        print(f"[{crawler_id}] 滾動頁面時發生錯誤: {e}")
+
+def wait_for_pokemon_data(driver, crawler_id, max_wait=30):
+    """等待 Pokemon 資料載入完成 - 改進版"""
     print(f"[{crawler_id}] 等待頁面元素載入...")
     
     # 首先等待基本頁面載入
-    time.sleep(3)
+    time.sleep(5)
     
-    # 嘗試找到元素，最多等待 max_wait 秒
+    # 滾動頁面觸發動態載入
+    scroll_and_wait(driver, crawler_id)
+    
+    # 等待並檢查是否有足夠的資料
     for i in range(max_wait):
         try:
             elements = driver.find_elements(By.CLASS_NAME, "name")
-            if elements:
-                print(f"[{crawler_id}] 找到 {len(elements)} 個 name 元素")
+            
+            # 檢查有多少元素有實際文字內容
+            elements_with_text = [e for e in elements if e.text.strip()]
+            
+            print(f"[{crawler_id}] 第 {i+1} 秒: 找到 {len(elements)} 個 name 元素, {len(elements_with_text)} 個有文字")
+            
+            # 如果找到超過 50 個有文字的元素，認為載入完成
+            if len(elements_with_text) > 50:
+                print(f"[{crawler_id}] ✓ 頁面載入完成，找到 {len(elements_with_text)} 個有效元素")
                 return True
+            
+            # 每 5 秒滾動一次頁面
+            if i > 0 and i % 5 == 0:
+                scroll_and_wait(driver, crawler_id)
+            
             time.sleep(1)
+            
         except Exception as e:
             print(f"[{crawler_id}] 等待時發生錯誤: {e}")
             time.sleep(1)
     
-    print(f"[{crawler_id}] 等待超時，但繼續嘗試處理")
+    # 最後再檢查一次
+    try:
+        elements = driver.find_elements(By.CLASS_NAME, "name")
+        elements_with_text = [e for e in elements if e.text.strip()]
+        if len(elements_with_text) > 20:
+            print(f"[{crawler_id}] 等待超時，但找到 {len(elements_with_text)} 個元素，繼續處理")
+            return True
+    except:
+        pass
+    
+    print(f"[{crawler_id}] 等待超時，資料可能未完全載入")
     return False
 
-def extract_pokemon_data_simple(driver, crawler_id):
+def extract_pokemon_data(driver, crawler_id):
+    """提取 Pokemon 資料 - 改進版"""
     try:
+        # 再次確保頁面完全載入
+        time.sleep(2)
+        
         name_elements = driver.find_elements(By.CLASS_NAME, "name")
         print(f"[{crawler_id}] 找到 {len(name_elements)} 個 name 元素")
 
@@ -239,22 +293,44 @@ def extract_pokemon_data_simple(driver, crawler_id):
 
         clean_names = []
         xl_list = []
+        
+        skipped_empty = 0
+        skipped_invalid = 0
 
         for e in name_elements:
-            text = e.text.strip()
-            html = e.get_attribute("innerHTML")
+            try:
+                text = e.text.strip()
+                html = e.get_attribute("innerHTML")
 
-            if not text:
-                continue  # 空的直接跳過
+                if not text:
+                    skipped_empty += 1
+                    continue
+                
+                # 過濾掉導航/選單項目（通常是單字且不含數字）
+                # Pokemon 名稱通常較長或包含特定模式
+                if len(text) < 2:
+                    skipped_invalid += 1
+                    continue
 
-            # 清理名字
-            clean_name = text.replace("XL", "").strip().split(" ")[0]
-            clean_names.append(clean_name)
+                # 清理名字：移除 XL 標記並取第一個詞
+                clean_name = text.replace("XL", "").strip().split(" ")[0]
+                
+                if not clean_name or len(clean_name) < 2:
+                    skipped_invalid += 1
+                    continue
+                
+                clean_names.append(clean_name)
 
-            # XL 判斷
-            xl_list.append(1 if "xl-info-icon" in html else 0)
+                # XL 判斷
+                xl_list.append(1 if "xl-info-icon" in html else 0)
+                
+            except Exception as e_inner:
+                print(f"[{crawler_id}] 處理單個元素時發生錯誤: {e_inner}")
+                continue
 
         print(f"[{crawler_id}] 成功提取 {len(clean_names)} 個寶可夢資料")
+        print(f"[{crawler_id}] (跳過 {skipped_empty} 個空元素, {skipped_invalid} 個無效元素)")
+        
         return clean_names, xl_list
 
     except Exception as e:
@@ -262,9 +338,8 @@ def extract_pokemon_data_simple(driver, crawler_id):
         return [], []
 
 
-
 def run_crawler(task):
-    """運行單個爬蟲任務 - 結合舊版本的簡潔性和新版本的穩定性"""
+    """運行單個爬蟲任務"""
     crawler_id = task["crawler_id"]
     filename = task["filename"]
     url = task["url"] 
@@ -286,16 +361,18 @@ def run_crawler(task):
             print(f"[{crawler_id}] 正在載入頁面: {url}")
             driver.get(url)
             
-            # 使用簡化的等待策略
-            simple_wait_for_elements(driver, crawler_id)
+            # 使用改進的等待策略
+            wait_for_pokemon_data(driver, crawler_id)
             
             # 提取資料
-            names_list, xl_list = extract_pokemon_data_simple(driver, crawler_id)
+            names_list, xl_list = extract_pokemon_data(driver, crawler_id)
             
             if not names_list:
                 print(f"[{crawler_id}] 警告: {filename} 沒有找到任何資料")
                 if attempt < max_retries - 1:
                     print(f"[{crawler_id}] 準備重試...")
+                    # 增加重試間隔
+                    time.sleep(5)
                     continue
                 else:
                     print(f"[{crawler_id}] {filename} 爬取失敗：找不到資料")
@@ -321,7 +398,7 @@ def run_crawler(task):
             if attempt == max_retries - 1:
                 print(f"[{crawler_id}] {filename} 爬取失敗，已達最大重試次數")
             else:
-                time.sleep(3)  # 等待後重試
+                time.sleep(5)  # 增加重試間隔
         finally:
             # 清理資源
             if driver or user_data_dir:
@@ -354,7 +431,7 @@ def main():
     
     print(f"\n開始並行執行 {len(CRAWLER_TASKS)} 個爬蟲任務...")
     
-    # 使用線程池執行 - 先嘗試3個並行
+    # 使用線程池執行
     with ThreadPoolExecutor(max_workers=3, thread_name_prefix="Crawler") as executor:
         # 提交所有任務
         futures = {

@@ -313,18 +313,63 @@ function copyToClipboard(elementId, buttonElement) {
     });
 }
 
-// 獲取最後更新時間
+// 獲取最後更新時間 - 從 update_log.json 讀取
 async function fetchLastUpdatedTime() {
+    const updateElement = document.getElementById("last_updated");
+    
     try {
-        const response = await fetch("https://api.github.com/repos/mikaiyen/PVpokeCrawler/commits?path=data/pvpoke_1500.csv&page=1&per_page=1");
-        const commits = await response.json();
-        if (commits && commits[0]) {
-            const date = new Date(commits[0].commit.committer.date);
-            document.getElementById("last_updated").innerText = "最近更新時間：" + date.toLocaleString('zh-TW');
+        // 優先從 update_log.json 讀取
+        const response = await fetch("https://raw.githubusercontent.com/mikaiyen/PVpokeCrawler/main/data/update_log.json");
+        
+        if (response.ok) {
+            const logData = await response.json();
+            
+            // 解析 ISO 時間格式
+            const date = new Date(logData.update_time);
+            const formattedTime = date.toLocaleString('zh-TW', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+            
+            // 顯示更新時間和檔案數量
+            const fileCount = logData.summary ? logData.summary.total_count : logData.files.length;
+            updateElement.innerHTML = `最近更新時間：${formattedTime} <span class="update-detail">(${fileCount} 個檔案)</span>`;
+            
+            console.log("更新日誌載入成功:", logData);
+        } else {
+            // 如果 update_log.json 不存在，fallback 到 GitHub API
+            console.warn("update_log.json 不存在，使用 GitHub API fallback");
+            await fetchLastUpdatedTimeFromGitHub();
         }
     } catch (err) {
-        console.warn("❗無法取得更新時間", err);
-        document.getElementById("last_updated").innerText = "最近更新時間：取得失敗";
+        console.warn("❗無法從 update_log.json 取得更新時間，嘗試 GitHub API:", err);
+        // Fallback 到 GitHub API
+        await fetchLastUpdatedTimeFromGitHub();
+    }
+}
+
+// Fallback: 從 GitHub API 獲取更新時間
+async function fetchLastUpdatedTimeFromGitHub() {
+    const updateElement = document.getElementById("last_updated");
+    
+    try {
+        const response = await fetch("https://api.github.com/repos/mikaiyen/PVpokeCrawler/commits?path=data&page=1&per_page=1");
+        const commits = await response.json();
+        
+        if (commits && commits[0]) {
+            const date = new Date(commits[0].commit.committer.date);
+            updateElement.innerHTML = `最近更新時間：${date.toLocaleString('zh-TW')} <span class="update-detail">(from Git)</span>`;
+        } else {
+            updateElement.innerText = "最近更新時間：無法取得";
+        }
+    } catch (err) {
+        console.warn("❗GitHub API 也無法取得更新時間", err);
+        updateElement.innerText = "最近更新時間：取得失敗";
     }
 }
 

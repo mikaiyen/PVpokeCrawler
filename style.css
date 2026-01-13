@@ -872,3 +872,10 @@ h1::after {
     opacity: 1;
     transform: translateY(0);
 }
+
+.update-detail {
+    font-size: 0.85em;
+    color: #667eea;
+    opacity: 0.8;
+    margin-left: 5px;
+}
